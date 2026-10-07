@@ -10,6 +10,9 @@ ground=pygame.image.load("ground.png")
 bg=pygame.transform.scale(bg,(W,H))
 ground=pygame.transform.scale(ground,(W*2,H//4))
 pipegap=200
+clock=pygame.time.Clock()
+pipefrequency=500
+lastpipe=pygame.time.get_ticks()
 
 class Bird (pygame.sprite.Sprite):
     def __init__(self,x,y):
@@ -59,6 +62,8 @@ class Pipe (pygame.sprite.Sprite):
 birdgroup=pygame.sprite.Group()
 flappy=Bird(100,H/2)
 birdgroup.add(flappy)
+pipegroup=pygame.sprite.Group()
+
 groundscroll=0
 run=True
 while run:
@@ -70,8 +75,21 @@ while run:
             gamestate="end"
         if groundscroll<-W:
             groundscroll=0  
+        currenttime=pygame.time.get_ticks()
+        if currenttime-lastpipe>pipefrequency:
+            pipeheight=random.randint(-100,100)
+            bottompipe=Pipe(W,H//2+pipeheight,"bottom")
+            toppipe=Pipe(W,H//2+pipeheight,"top")
+            pipegroup.add(bottompipe)
+            pipegroup.add(toppipe)
+            lastpipe=currenttime
+        pipegroup.update()
+        if pygame.sprite.groupcollide(birdgroup,pipegroup,False,False) and flappy.rect.top<0:
+            gamestate="end"
     birdgroup.draw(screen)
     birdgroup.update()
+    pipegroup.draw(screen)
+
     for e in pygame.event.get():
         if e.type==pygame.QUIT:
             pygame.quit()
